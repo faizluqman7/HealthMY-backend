@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 from models import HealthInput, HealthAdvice
 from ai import generate_ai_summary
+from services.ml_predictor import predict_heart_disease
 
 router = APIRouter()
 
@@ -73,6 +74,18 @@ async def calculate_health_summary(data: HealthInput):
         score = int(0.4 * score + 0.6 * ml.score)
         score = max(0, min(100, score))
 
+    # Heart disease risk prediction
+    heart_disease_risk = None
+    try:
+        heart_disease_risk = predict_heart_disease(data)
+    except Exception as e:
+        print(f"Heart disease prediction failed: {e}")
+
+    # Factor heart disease risk into score
+    if heart_disease_risk is not None and heart_disease_risk > 0.3:
+        penalty = int((heart_disease_risk - 0.3) * 30)  # up to ~21 pts for 100% risk
+        score = max(0, score - penalty)
+
     if score >= 80:
         status = "Healthy"
     elif score >= 60:
@@ -80,13 +93,14 @@ async def calculate_health_summary(data: HealthInput):
     else:
         status = "At Risk"
 
-    ai_summary = generate_ai_summary(data)
+    ai_summary = generate_ai_summary(data, heart_disease_risk)
 
     return HealthAdvice(
         score=score,
         status=status,
         recommendations=recommendations,
-        ai_summary=ai_summary
+        ai_summary=ai_summary,
+        heart_disease_risk=heart_disease_risk,
     )
 
 @router.get("/status")

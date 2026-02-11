@@ -42,9 +42,12 @@ class HealthInput(BaseModel):
     sleep: List[SleepEntry] = Field(default_factory=list)
     glucose: List[GlucoseEntry] = Field(default_factory=list)
     ml_analysis: Optional[MLAnalysis] = None
+    age: Optional[int] = None
+    sex: Optional[int] = None
 
 class HealthAdvice(BaseModel):
     score: int
     status: str
     recommendations: List[str]
     ai_summary: str
+    heart_disease_risk: Optional[float] = None

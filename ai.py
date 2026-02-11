@@ -5,7 +5,7 @@ from models import HealthInput
 API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
 API_KEY = os.getenv("GOOGLE_API_KEY")
 
-def generate_ai_summary(data: HealthInput) -> str:
+def generate_ai_summary(data: HealthInput, heart_disease_risk: float | None = None) -> str:
     def format_entries(label, entries):
         return "\n".join([f"{label} - {e.date.date()}: {e.model_dump(exclude={'date'})}" for e in entries]) or "No data"
 
@@ -21,6 +21,17 @@ On-Device ML Analysis (from user's phone):
 
 Use the ML analysis above to provide more targeted recommendations.
 Focus on areas flagged as elevated/high risk and worsening trends.
+"""
+
+    heart_section = ""
+    if heart_disease_risk is not None:
+        pct = round(heart_disease_risk * 100, 1)
+        heart_section = f"""
+Heart Disease Risk Assessment (ML model based on UCI Cleveland dataset):
+- Predicted risk: {pct}%
+- {"This is an elevated risk. Address contributing factors." if pct > 30 else "Risk is within acceptable range."}
+
+Comment on this heart disease risk assessment in your summary.
 """
 
     prompt = f"""
@@ -46,7 +57,7 @@ Sleep Readings:
 
 Glucose Readings:
 {format_entries("Glucose", data.glucose)}
-{ml_section}
+{ml_section}{heart_section}
 Be concise and medically responsible.
 """
 
