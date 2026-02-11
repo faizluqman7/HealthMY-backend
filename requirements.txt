@@ -90,6 +90,3 @@ uvicorn==0.34.3
 wcwidth==0.2.13
 webencodings==0.5.1
 yarg==0.1.9
-scikit-learn==1.6.1
-joblib==1.5.1
-huggingface_hub==0.33.0
